@@ -38,6 +38,11 @@ Mettre en place une synchronisation multi-appareils en temps réel.
 
 ---
 
+# 🗄️ Structure de la Base de Données
+![Structure de la base de données](lib/assets/structure_base_db.png)
+
+---
+
 # 📅 Répartition du Travail
 
 | Phase | Description |
