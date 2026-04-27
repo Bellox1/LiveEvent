@@ -2,16 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // TODO: Initialize Supabase here
-  /*
   await Supabase.initialize(
-    url: 'YOUR_SUPABASE_URL',
-    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+    url: 'https://pucbfcunmpaltnceufcy.supabase.co',
+    anonKey: 'sb_publishable___n4XffxFC5949TzT5d-tg_uLdaOUE4',
   );
-  */
 
   runApp(const MyApp());
 }
