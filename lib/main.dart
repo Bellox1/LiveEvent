@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'login_page.dart'; 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,24 +26,34 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue, // Subtle blue for iOS look
-          background: Colors.white,
+          seedColor: Colors.blue, 
+          surface: Colors.white,
         ),
         textTheme: GoogleFonts.interTextTheme(
           Theme.of(context).textTheme,
         ),
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'Live Event App',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.5, // Tighter spacing like San Francisco
-            ),
-          ),
-        ),
+      
+      home: StreamBuilder<AuthState>(
+        stream: Supabase.instance.client.auth.onAuthStateChange,
+        builder: (context, snapshot) {
+          final session = snapshot.data?.session;
+
+          
+          if (session != null) {
+            return const Scaffold(
+              body: Center(
+                child: Text(
+                  'Bienvenue ! (Connecté)',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                ),
+              ),
+            );
+          }
+
+          // Si l'utilisateur n'est pas connecté, on affiche TA page LoginPage
+          return LoginPage();
+        },
       ),
     );
   }
