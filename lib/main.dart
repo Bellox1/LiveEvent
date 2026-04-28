@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'event.dart'; 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -12,6 +12,8 @@ Future<void> main() async {
 
   runApp(const MyApp());
 }
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -25,23 +27,51 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue, // Subtle blue for iOS look
+          seedColor: Colors.blue,
           background: Colors.white,
         ),
         textTheme: GoogleFonts.interTextTheme(
           Theme.of(context).textTheme,
         ),
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'Live Event App',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.5, // Tighter spacing like San Francisco
+      home: const HomeScreen(), // On remplace Scaffold par un vrai widget
+    );
+  }
+}
+// Nouvel écran d'accueil avec le bouton
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Live Event App',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.5,
+              ),
             ),
-          ),
+            const SizedBox(height: 40),
+            ElevatedButton(
+              onPressed: () {
+                // Navigation vers la page des événements
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EventsScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+              child: const Text('Voir les événements'),
+            ),
+          ],
         ),
       ),
     );
