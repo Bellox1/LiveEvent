@@ -12,7 +12,7 @@ class LoginPage extends StatelessWidget {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // Si ça marche, tu peux ajouter une redirection ici
+      
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur : $e"), backgroundColor: Colors.redAccent),
@@ -23,7 +23,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // On enlève l'AppBar pour un look plus moderne avec le dégradé
+      
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -35,7 +35,7 @@ class LoginPage extends StatelessWidget {
           ),
         ),
         child: Center(
-          child: SingleChildScrollView( // Pour éviter les bugs sur petit écran
+          child: SingleChildScrollView( 
             padding: EdgeInsets.all(24),
             child: Card(
               elevation: 12,
@@ -54,7 +54,7 @@ class LoginPage extends StatelessWidget {
                     ),
                     SizedBox(height: 30),
                     
-                    // Champ Email
+                    
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
@@ -65,7 +65,7 @@ class LoginPage extends StatelessWidget {
                     ),
                     SizedBox(height: 20),
                     
-                    // Champ Password
+                    
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
@@ -77,7 +77,7 @@ class LoginPage extends StatelessWidget {
                     ),
                     SizedBox(height: 30),
                     
-                    // Bouton Se Connecter
+                    
                     SizedBox(
                       width: double.infinity,
                       height: 55,
@@ -94,7 +94,7 @@ class LoginPage extends StatelessWidget {
                     ),
                     SizedBox(height: 15),
                     
-                    // Lien Créer un compte
+                    
                     TextButton(
                       onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPage())),
                       child: Text(

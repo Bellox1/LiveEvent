@@ -88,7 +88,7 @@ class _RegisterPageState extends State<RegisterPage> {
               decoration: const InputDecoration(
                 labelText: "Email",
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(IconData(0xe22a, fontFamily: 'MaterialIcons')), // Icône Email
+                prefixIcon: Icon(IconData(0xe22a, fontFamily: 'MaterialIcons')), 
               ),
               keyboardType: TextInputType.emailAddress,
             ),

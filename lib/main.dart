@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
             );
           }
 
-          // Si l'utilisateur n'est pas connecté, on affiche TA page LoginPage
+        
           return LoginPage();
         },
       ),
