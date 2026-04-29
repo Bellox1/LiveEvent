@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'participation_service.dart';
+import 'participants_list.dart';
+import 'join_leave_button.dart';
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
@@ -25,12 +28,10 @@ class _EventsScreenState extends State<EventsScreen> {
 
   @override
   void dispose() {
-    // Nettoyer l'abonnement pour éviter les fuites mémoire
     _channel.unsubscribe();
     super.dispose();
   }
 
-  /// 🔹 Récupère la liste des événements depuis Supabase
   Future<void> _fetchEvents() async {
     try {
       if (!mounted) return;
@@ -65,7 +66,6 @@ class _EventsScreenState extends State<EventsScreen> {
     }
   }
 
-  /// 🔹 Abonnement temps réel aux changements sur la table `events`
   void _setupRealtimeSubscription() {
     _channel = supabase.channel('public:events');
     
@@ -75,8 +75,6 @@ class _EventsScreenState extends State<EventsScreen> {
         schema: 'public',
         table: 'events',
         callback: (payload) {
-          // Mise à jour automatique de la liste à chaque changement
-          // Aucun bouton "rafraîchir" nécessaire ✨
           _fetchEvents();
         },
       )
@@ -87,7 +85,6 @@ class _EventsScreenState extends State<EventsScreen> {
       });
   }
 
-  /// 🔹 Crée un nouvel événement (date automatique = maintenant)
   Future<void> _createEvent(String title) async {
     try {
       final user = supabase.auth.currentUser;
@@ -97,11 +94,9 @@ class _EventsScreenState extends State<EventsScreen> {
 
       await supabase.from('events').insert({
         'title': title.trim(),
-        'date': DateTime.now().toIso8601String(), // 🎯 Date auto-générée
+        'date': DateTime.now().toIso8601String(),
         'created_by': user.id,
       });
-      
-      // La mise à jour temps réel gère le refresh ✅
       
     } catch (e) {
       if (mounted) {
@@ -116,7 +111,6 @@ class _EventsScreenState extends State<EventsScreen> {
     }
   }
 
-  /// 🔹 Affiche le dialog de création d'événement
   void _showCreateEventDialog() {
     final titleController = TextEditingController();
     
@@ -192,7 +186,6 @@ class _EventsScreenState extends State<EventsScreen> {
     _createEvent(title);
   }
 
-  /// 🔹 Formattage lisible de la date
   String _formatDate(String isoDate) {
     final dateTime = DateTime.parse(isoDate);
     const months = [
@@ -228,7 +221,6 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 
-  /// 🔹 Widget principal du body avec gestion des états
   Widget _buildBody() {
     if (_isLoading && _events.isEmpty) {
       return const Center(
@@ -292,99 +284,119 @@ class _EventsScreenState extends State<EventsScreen> {
       );
     }
 
-    // ✅ Liste des événements avec mise à jour temps réel
+    // ⭐⭐⭐ LISTE DES ÉVÉNEMENTS MODIFIÉE AVEC TES FONCTIONNALITÉS P4 ⭐⭐⭐
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
       itemCount: _events.length,
       itemBuilder: (context, index) {
         final event = _events[index];
         final creatorEmail = event['users']?['email'] ?? 'Utilisateur';
+        final eventId = event['id'].toString();
         
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           elevation: 2,
-          shadowColor: Colors.blue.shade100,
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(16),
-            title: Text(
-              event['title'],
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.calendar_today, 
-                          size: 14, 
-                          color: Colors.blue.shade700
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _formatDate(event['date']),
-                          style: TextStyle(
-                            color: Colors.blue.shade800,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Partie existante (infos événement)
+              ListTile(
+                contentPadding: const EdgeInsets.all(16),
+                title: Text(
+                  event['title'],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.person_outline, 
-                        size: 14, 
-                        color: Colors.grey.shade600
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Créé par: $creatorEmail',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
                         ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.calendar_today, 
+                              size: 14, 
+                              color: Colors.blue.shade700
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _formatDate(event['date']),
+                              style: TextStyle(
+                                color: Colors.blue.shade800,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.person_outline, 
+                            size: 14, 
+                            color: Colors.grey.shade600
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Créé par: $creatorEmail',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-            isThreeLine: true,
+              
+              // ⭐⭐⭐ TES AJOUTS P4 : BOUTONS + LISTE PARTICIPANTS ⭐⭐⭐
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  children: [
+                    // Boutons Rejoindre/Quitter
+                    JoinLeaveButton(eventId: eventId),
+                    const SizedBox(height: 12),
+                    // Liste des participants (temps réel)
+                    ParticipantsList(eventId: eventId),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
     );
   }
 
-  /// 🔹 Dialog d'information rapide
   void _showInfoDialog() {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('ℹ️ Synchronisation'),
         content: const Text(
-          'Les événements se mettent à jour automatiquement en temps réel. '
-          'Aucun bouton "rafraîchir" nécessaire ! ✨\n\n'
-          '• Création: titre uniquement\n'
-          '• Date: définie automatiquement\n'
-          '• Mise à jour: instantanée sur tous les appareils',
+          '✨ Synchronisation en temps réel ! ✨\n\n'
+          '• Les événements se mettent à jour automatiquement\n'
+          '• Les participants apparaissent instantanément\n'
+          '• Aucun bouton "rafraîchir" nécessaire\n\n'
+          '👥 Participation : rejoignez ou quittez un événement\n'
+          '📊 Voyez qui participe en temps réel',
         ),
         actions: [
           TextButton(
