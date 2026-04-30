@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'login_page.dart'; 
+
+import 'auth_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,27 +35,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       
-      home: StreamBuilder<AuthState>(
-        stream: Supabase.instance.client.auth.onAuthStateChange,
-        builder: (context, snapshot) {
-          final session = snapshot.data?.session;
-
-          
-          if (session != null) {
-            return const Scaffold(
-              body: Center(
-                child: Text(
-                  'Bienvenue ! (Connecté)',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-                ),
-              ),
-            );
-          }
-
-        
-          return LoginPage();
-        },
-      ),
+      home: const AuthPage(),
     );
   }
 }
