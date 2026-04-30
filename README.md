@@ -47,11 +47,11 @@ Mettre en place une synchronisation multi-appareils en temps réel.
 
 | Phase | Description |
 | :--- | :--- |
-| **P1** | Backend temps réel via Firebase ou Supabase |
-| **P2** | Authentification |
-| **P3** | Gestion des événements |
+| **P1** | Backend Supabase, Base de données & Refonte UI de l'application (Design Minimaliste) |
+| **P2** | Authentification (Connexion / Inscription) |
+| **P3** | Gestion des événements (Création et Listing) |
 | **P4** | Participation |
-| **P5** | Fusion des branches + tests des fonctionnalités |
+| **P5** | Mise à jour des données sur les interfaces en temps réel, fusion des branches et tests |
 
 ---
 

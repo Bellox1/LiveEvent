@@ -24,12 +24,13 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          surface: Colors.white, // ← "surface" (pas "background", déprécié)
+          seedColor: const Color(0xFF1A73E8),
+          surface: Colors.white,
+          onSurface: const Color(0xFF1F1F1F),
         ),
-        textTheme: GoogleFonts.interTextTheme(
+        textTheme: GoogleFonts.outfitTextTheme(
           Theme.of(context).textTheme,
         ),
       ),
@@ -37,10 +38,10 @@ class MyApp extends StatelessWidget {
       home: StreamBuilder<AuthState>(
         stream: Supabase.instance.client.auth.onAuthStateChange,
         builder: (context, snapshot) {
-          // État de chargement initial
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+              backgroundColor: Color(0xFFF8F9FA), // Couleur de fond par défaut
+              body: SizedBox.shrink(), // Pas de rond de chargement
             );
           }
 
