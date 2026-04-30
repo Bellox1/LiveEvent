@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  sdk: ^3.9.0 
+  # #3.9.2
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -31,6 +32,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  shared_preferences: ^2.5.3           # <-- AJOUTEZ CETTE LIGNE
   supabase_flutter: ^2.8.2
   provider: ^6.1.2
   intl: ^0.20.2
