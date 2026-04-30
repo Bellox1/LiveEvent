@@ -36,12 +36,7 @@ class _ParticipantsListState extends State<ParticipantsList> {
     try {
       final response = await supabase
           .from('participants')
-          .select('''
-            user_id,
-            users (
-              email
-            )
-          ''')
+          .select('user_id')
           .eq('event_id', widget.eventId);
       
       if (mounted) {

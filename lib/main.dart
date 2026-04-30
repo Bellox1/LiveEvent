@@ -37,9 +37,16 @@ class MyApp extends StatelessWidget {
       home: StreamBuilder<AuthState>(
         stream: Supabase.instance.client.auth.onAuthStateChange,
         builder: (context, snapshot) {
+          // État de chargement initial
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
           final session = snapshot.data?.session;
           if (session != null) {
-            return const HomeScreen(); // ← widget de gestion-des-evements
+            return const EventsScreen();
           }
           return LoginPage();
         },
@@ -55,30 +62,53 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          Supabase.instance.client.auth.currentUser?.email ?? 'Accueil',
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await Supabase.instance.client.auth.signOut();
+            },
+            tooltip: 'Déconnexion',
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Live Event App',
+              '🚀 Live Event App',
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
                 letterSpacing: -0.5,
               ),
             ),
+            const SizedBox(height: 10),
+            Text(
+              'Connecté en tant que :\n${Supabase.instance.client.auth.currentUser?.email}',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
             const SizedBox(height: 40),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const EventsScreen()),
                 );
               },
+              icon: const Icon(Icons.event_note),
+              label: const Text('Voir les événements'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 15),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              child: const Text('Voir les événements'),
             ),
           ],
         ),

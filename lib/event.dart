@@ -39,14 +39,7 @@ class _EventsScreenState extends State<EventsScreen> {
       
       final response = await supabase
           .from('events')
-          .select('''
-            id,
-            title,
-            date,
-            created_at,
-            created_by,
-            users ( email )
-          ''')
+          .select('id, title, date, created_at, created_by')
           .order('date', ascending: false);
 
       if (mounted) {
@@ -143,11 +136,13 @@ class _EventsScreenState extends State<EventsScreen> {
                 children: [
                   Icon(Icons.access_time, size: 18, color: Colors.blue.shade700),
                   const SizedBox(width: 8),
-                  Text(
-                    'Date: automatique (maintenant)',
-                    style: TextStyle(
-                      color: Colors.blue.shade800,
-                      fontSize: 12,
+                  Expanded(
+                    child: Text(
+                      'Date: automatique (maintenant)',
+                      style: TextStyle(
+                        color: Colors.blue.shade800,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -201,9 +196,25 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('📅 Événements'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('📅 Événements', style: TextStyle(fontSize: 18)),
+            Text(
+              supabase.auth.currentUser?.email ?? '',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+            ),
+          ],
+        ),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await supabase.auth.signOut();
+            },
+            tooltip: 'Déconnexion',
+          ),
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () => _showInfoDialog(),
@@ -351,11 +362,14 @@ class _EventsScreenState extends State<EventsScreen> {
                             color: Colors.grey.shade600
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            'Créé par: $creatorEmail',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 12,
+                          Expanded(
+                            child: Text(
+                              'Créé par: $creatorEmail',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
