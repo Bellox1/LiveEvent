@@ -37,17 +37,16 @@ class _EventsScreenState extends State<EventsScreen> {
       if (!mounted) return;
       setState(() => _isLoading = true);
       
-      final response = await supabase
-          .from('events')
-          .select('''
-            id,
-            title,
-            date,
-            created_at,
-            created_by,
-            users ( email )
-          ''')
-          .order('date', ascending: false);
+final response = await supabase
+    .from('events')
+    .select('''
+      id,
+      title,
+      date,
+      created_at,
+      created_by
+    ''')
+    .order('date', ascending: false);
 
       if (mounted) {
         setState(() {
@@ -290,7 +289,7 @@ class _EventsScreenState extends State<EventsScreen> {
       itemCount: _events.length,
       itemBuilder: (context, index) {
         final event = _events[index];
-        final creatorEmail = event['users']?['email'] ?? 'Utilisateur';
+        final creatorEmail = event['created_by']?.toString().substring(0, 8) ?? 'Utilisateur';;
         final eventId = event['id'].toString();
         
         return Card(

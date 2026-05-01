@@ -1,6 +1,5 @@
 // lib/participation_service.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 class ParticipationService {
   final supabase = Supabase.instance.client;
   
@@ -9,7 +8,8 @@ class ParticipationService {
   
   // 🔵 REJOINDRE un événement
   Future<void> joinEvent(String eventId) async {
-    if (currentUserId == null) {
+    final userId = currentUserId; // ← variable locale
+    if (userId == null) {
       throw Exception('Vous devez être connecté');
     }
     
@@ -18,7 +18,7 @@ class ParticipationService {
         .from('participants')
         .select('id')
         .eq('event_id', eventId)
-        .eq('user_id', currentUserId);
+        .eq('user_id', userId); // ← userId au lieu de currentUserId
     
     if (existing.isNotEmpty) {
       throw Exception('Vous participez déjà à cet événement');
@@ -26,14 +26,15 @@ class ParticipationService {
     
     // Ajoute la participation (avec les bons noms de colonnes)
     await supabase.from('participants').insert({
-      'event_id': eventId,     // ✅ Bon nom
-      'user_id': currentUserId, // ✅ Bon nom
+      'event_id': eventId,
+      'user_id': userId, // ← userId au lieu de currentUserId
     });
   }
   
   // 🔴 QUITTER un événement
   Future<void> leaveEvent(String eventId) async {
-    if (currentUserId == null) {
+    final userId = currentUserId; // ← variable locale
+    if (userId == null) {
       throw Exception('Vous devez être connecté');
     }
     
@@ -42,18 +43,19 @@ class ParticipationService {
         .from('participants')
         .delete()
         .eq('event_id', eventId)
-        .eq('user_id', currentUserId);
+        .eq('user_id', userId); // ← userId au lieu de currentUserId
   }
   
   // Vérifie si l'utilisateur participe à un événement
   Future<bool> isParticipating(String eventId) async {
-    if (currentUserId == null) return false;
+    final userId = currentUserId; // ← variable locale
+    if (userId == null) return false;
     
     final response = await supabase
         .from('participants')
         .select('id')
         .eq('event_id', eventId)
-        .eq('user_id', currentUserId);
+        .eq('user_id', userId); // ← userId au lieu de currentUserId
     
     return response.isNotEmpty;
   }

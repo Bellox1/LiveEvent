@@ -35,14 +35,9 @@ class _ParticipantsListState extends State<ParticipantsList> {
   Future<void> _fetchParticipants() async {
     try {
       final response = await supabase
-          .from('participants')
-          .select('''
-            user_id,
-            users (
-              email
-            )
-          ''')
-          .eq('event_id', widget.eventId);
+    .from('participants')
+    .select('user_id')
+    .eq('event_id', widget.eventId);
       
       if (mounted) {
         setState(() {
@@ -59,8 +54,7 @@ class _ParticipantsListState extends State<ParticipantsList> {
   }
   
   void _setupRealtimeSubscription() {
-    _channel = supabase.channel('public:participants');
-    
+    _channel = supabase.channel('participants:${widget.eventId}');
     _channel.onPostgresChanges(
       event: PostgresChangeEvent.all,
       schema: 'public',
@@ -118,8 +112,7 @@ class _ParticipantsListState extends State<ParticipantsList> {
             runSpacing: 8,
             children: _participants.map((p) {
               final userId = p['user_id'];
-              final userData = p['users'] as Map<String, dynamic>?;
-              final email = userData?['email'] ?? 'Utilisateur';
+              final email = userId?.toString().substring(0, 8) ?? 'Utilisateur';
               final isMe = userId == _currentUserId;
               
               return Chip(
