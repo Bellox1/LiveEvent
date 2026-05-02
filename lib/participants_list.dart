@@ -38,12 +38,7 @@ class _ParticipantsListState extends State<ParticipantsList> {
     try {
       final response = await supabase
           .from('participants')
-          .select('''
-            user_id,
-            users (
-              email
-            )
-          ''')
+          .select('user_id, profiles(email)')
           .eq('event_id', widget.eventId);
       
       if (mounted) {
@@ -61,7 +56,8 @@ class _ParticipantsListState extends State<ParticipantsList> {
   }
   
   void _setupRealtimeSubscription() {
-    _channel = supabase.channel('participants:${widget.eventId}');
+    _channel = supabase.channel('public:participants');
+    
     _channel.onPostgresChanges(
       event: PostgresChangeEvent.all,
       schema: 'public',
@@ -164,7 +160,7 @@ class _ParticipantsListState extends State<ParticipantsList> {
           Column(
             children: _participants.map((p) {
               final userId = p['user_id'];
-              final userData = p['users'] as Map<String, dynamic>?;
+              final userData = p['profiles'] as Map<String, dynamic>?;
               final email = userData?['email'] ?? 'Utilisateur';
               final isMe = userId == _currentUserId;
               
@@ -172,17 +168,18 @@ class _ParticipantsListState extends State<ParticipantsList> {
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isMe ? Colors.blue.shade50 : Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
                   border: Border.all(
-                    color: isMe ? Colors.blue.shade100 : Colors.grey.shade200,
+                    color: Colors.grey.shade100,
+                    width: 1,
                   ),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: isMe ? Colors.blue.shade600 : Colors.grey.shade400,
+                      backgroundColor: Colors.blue.shade400,
                       child: Text(
                         email.substring(0, 1).toUpperCase(),
                         style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.bold),
@@ -192,10 +189,10 @@ class _ParticipantsListState extends State<ParticipantsList> {
                     Expanded(
                       child: Text(
                         isMe ? supabase.auth.currentUser?.email ?? 'Moi' : email,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: isMe ? FontWeight.w600 : FontWeight.w400,
-                          color: isMe ? Colors.blue.shade900 : Colors.black87,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black87,
                         ),
                       ),
                     ),

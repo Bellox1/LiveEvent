@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'register_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _obscureText = true;
 
   Future<void> _login(BuildContext context) async {
     try {
@@ -21,93 +27,141 @@ class LoginPage extends StatelessWidget {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue.shade900, Colors.blue.shade400],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView( 
-            padding: EdgeInsets.all(24),
-            child: Card(
-              elevation: 12,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Icone ou Logo de ton app
-                    Icon(Icons.event_available, size: 80, color: Colors.blue.shade900),
-                    SizedBox(height: 10),
-                    Text(
-                      "LiveEvent",
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blue.shade900),
-                    ),
-                    SizedBox(height: 30),
-                    
-                    
-                    TextField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: "Email",
-                        prefixIcon: Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    
-                    
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: "Password",
-                        prefixIcon: Icon(Icons.lock_outline),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                      ),
-                    ),
-                    SizedBox(height: 30),
-                    
-                    
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade900,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                          elevation: 5,
-                        ),
-                        onPressed: () => _login(context),
-                        child: Text("Se connecter", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                    SizedBox(height: 15),
-                    
-                    
-                    TextButton(
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPage())),
-                      child: Text(
-                        "Pas de compte ? Créer un compte",
-                        style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
+      body: Stack(
+        children: [
+          // Background Image with Fallback
+          Positioned.fill(
+            child: Image.network(
+              'https://i.pinimg.com/736x/58/b8/80/58b88017ba2f081a28fb264d1cbf76e5.jpg',
+              fit: BoxFit.cover,
+              color: Colors.blue.shade900.withOpacity(0.65),
+              colorBlendMode: BlendMode.darken,
+              errorBuilder: (context, error, stackTrace) => Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.blue.shade900, Colors.blue.shade800],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+          // Dark overlay if image loads
+          Positioned.fill(
+            child: Container(
+              color: Colors.blue.shade900.withOpacity(0.3),
+            ),
+          ),
+          Center(
+            child: SingleChildScrollView( 
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "LiveEvent",
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  const SizedBox(height: 30),
+                  
+                  TextField(
+                    controller: _emailController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Email",
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      prefixIcon: const Icon(Icons.email_outlined, color: Colors.white70),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.white54),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: _obscureText,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Password",
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureText ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.white70,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureText = !_obscureText;
+                          });
+                        },
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.white54),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {}, // Logique non implémentée
+                      child: const Text(
+                        "Mot de passe oublié ?",
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.blue.shade900,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        elevation: 5,
+                      ),
+                      onPressed: () => _login(context),
+                      child: const Text("Se connecter", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  
+                  TextButton(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterPage())),
+                    child: const Text(
+                      "Pas de compte ? Créer un compte",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -98,51 +98,84 @@ class _JoinLeaveButtonState extends State<JoinLeaveButton> {
   
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
-    }
-    
-    if (_isParticipating) {
-      return OutlinedButton.icon(
-        onPressed: _handleLeave,
-        icon: const Icon(Icons.exit_to_app, size: 14),
-        label: const Text(
-          'Quitter', 
-          style: TextStyle(fontSize: 12),
-          overflow: TextOverflow.ellipsis,
-        ),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.red.shade600,
-          side: BorderSide(color: Colors.red.shade100),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      );
-    } else {
-      return ElevatedButton.icon(
-        onPressed: _handleJoin,
-        icon: const Icon(Icons.person_add, size: 14),
-        label: const Text(
-          'Rejoindre', 
-          style: TextStyle(fontSize: 12),
-          overflow: TextOverflow.ellipsis,
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue.shade600,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      );
-    }
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(scale: animation, child: child),
+        );
+      },
+      child: _isLoading && _isParticipating == false && _isFirstLoad()
+          ? _buildLoading()
+          : _isParticipating 
+              ? _buildLeaveButton() 
+              : _buildJoinButton(),
+    );
+  }
+
+  bool _isFirstLoad() {
+    // Une petite astuce pour savoir si c'est le chargement initial
+    return _isLoading && !_isParticipating;
+  }
+
+  Widget _buildLoading() {
+    return Container(
+      key: const ValueKey('loading'),
+      width: 40,
+      height: 40,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        shape: BoxShape.circle,
+      ),
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
+      ),
+    );
+  }
+
+  Widget _buildJoinButton() {
+    return ElevatedButton.icon(
+      key: const ValueKey('join'),
+      onPressed: _isLoading ? null : _handleJoin,
+      icon: _isLoading 
+          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          : const Icon(Icons.person_add_alt_1_rounded, size: 20),
+      label: Text(
+        _isLoading ? 'Traitement...' : 'Rejoindre',
+        style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.2),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue.shade700,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        shadowColor: Colors.blue.shade200,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      ),
+    );
+  }
+
+  Widget _buildLeaveButton() {
+    return OutlinedButton.icon(
+      key: const ValueKey('leave'),
+      onPressed: _isLoading ? null : _handleLeave,
+      icon: _isLoading 
+          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red))
+          : const Icon(Icons.no_accounts_rounded, size: 20),
+      label: Text(
+        _isLoading ? 'Sortie...' : 'Quitter',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.red.shade700,
+        side: BorderSide(color: Colors.red.shade200, width: 1.5),
+        backgroundColor: Colors.red.shade50.withOpacity(0.5),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      ),
+    );
   }
 }

@@ -45,7 +45,7 @@ Mettre en place une synchronisation multi-appareils en temps réel.
 
 # 📅 Répartition du Travail
 
-| Phase | Description |
+| Personne | Description |
 | :--- | :--- |
 | **P1** | Backend Supabase, Base de données & Refonte UI de l'application (Design Minimaliste) |
 | **P2** | Authentification (Connexion / Inscription) |
