@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shimmer/shimmer.dart';
 import 'participation_service.dart';
 import 'participants_list.dart';
 import 'join_leave_button.dart';
@@ -37,16 +38,16 @@ class _EventsScreenState extends State<EventsScreen> {
       if (!mounted) return;
       setState(() => _isLoading = true);
       
-final response = await supabase
-    .from('events')
-    .select('''
-      id,
-      title,
-      date,
-      created_at,
-      created_by
-    ''')
-    .order('date', ascending: false);
+      final response = await supabase
+          .from('events')
+          .select('''
+            id,
+            title,
+            date,
+            created_at,
+            created_by
+          ''')
+          .order('date', ascending: false);
 
       if (mounted) {
         setState(() {
@@ -115,56 +116,69 @@ final response = await supabase
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('✨ Nouveau événement'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(
-                labelText: 'Titre de l\'événement',
-                hintText: 'Ex: Réunion d\'équipe, Anniversaire...',
-                prefixIcon: Icon(Icons.title),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Créer un événement',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
               ),
-              autofocus: true,
-              maxLength: 100,
-              onSubmitted: (_) => _submitEvent(titleController.text),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
+              const SizedBox(height: 24),
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(
+                  labelText: 'Titre',
+                  hintText: 'Ex: Réunion d\'équipe...',
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                ),
+                autofocus: true,
+                maxLength: 100,
               ),
-              child: Row(
+              const SizedBox(height: 32),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 12,
+                runSpacing: 8,
                 children: [
-                  Icon(Icons.access_time, size: 18, color: Colors.blue.shade700),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Date: automatique (maintenant)',
-                    style: TextStyle(
-                      color: Colors.blue.shade800,
-                      fontSize: 12,
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _submitEvent(titleController.text),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade600,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     ),
+                    child: const Text('Créer'),
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => _submitEvent(titleController.text),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Créer'),
-          ),
-        ],
       ),
     );
   }
@@ -200,11 +214,44 @@ final response = await supabase
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('📅 Événements'),
-        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.blue.shade900, Colors.blue.shade400],
+            ),
+          ),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.calendar_today_rounded, size: 18, color: Colors.white),
+                const SizedBox(width: 8),
+                const Text('Événements', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              ],
+            ),
+            Text(
+              supabase.auth.currentUser?.email ?? '',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
+            ),
+          ],
+        ),
+        elevation: 4,
+        shadowColor: Colors.blue.shade900.withOpacity(0.5),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline),
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () async {
+              await supabase.auth.signOut();
+            },
+            tooltip: 'Déconnexion',
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: Colors.white),
             onPressed: () => _showInfoDialog(),
             tooltip: 'À propos',
           ),
@@ -213,25 +260,94 @@ final response = await supabase
       body: _buildBody(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreateEventDialog,
+        backgroundColor: Colors.blue.shade900,
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text('Nouvel événement'),
+        label: const Text('Nouvel événement', style: TextStyle(fontWeight: FontWeight.bold)),
         tooltip: 'Créer un événement',
       ),
     );
   }
 
+  Widget _buildSkeletonList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 4,
+      itemBuilder: (context, index) {
+        return Card(
+          margin: const EdgeInsets.only(bottom: 20),
+          elevation: 0,
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.grey.shade100),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey.shade200,
+              highlightColor: Colors.grey.shade50,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: 150,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      Container(
+                        width: 80,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: 200,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Divider(height: 1, color: Colors.grey.shade200),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildBody() {
     if (_isLoading && _events.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Chargement des événements...'),
-          ],
-        ),
-      );
+      return _buildSkeletonList();
     }
 
     if (_error != null && _events.isEmpty) {
@@ -283,101 +399,93 @@ final response = await supabase
       );
     }
 
-    // ⭐⭐⭐ LISTE DES ÉVÉNEMENTS MODIFIÉE AVEC TES FONCTIONNALITÉS P4 ⭐⭐⭐
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
       itemCount: _events.length,
       itemBuilder: (context, index) {
         final event = _events[index];
-        final creatorEmail = event['created_by']?.toString().substring(0, 8) ?? 'Utilisateur';;
+        final creatorEmail = event['created_by']?.toString().substring(0, 8) ?? 'Utilisateur';
         final eventId = event['id'].toString();
         
         return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Partie existante (infos événement)
-              ListTile(
-                contentPadding: const EdgeInsets.all(16),
-                title: Text(
-                  event['title'],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
+          margin: const EdgeInsets.only(bottom: 20),
+          elevation: 0,
+          color: Colors.white,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.grey.shade100),
+          ),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ParticipantsScreen(
+                    eventId: eventId,
+                    eventTitle: event['title'],
+                    eventDate: event['date'],
+                    creatorEmail: creatorEmail,
                   ),
                 ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event['title'],
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                      Flexible(
+                        flex: 2,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.calendar_today, 
-                              size: 14, 
-                              color: Colors.blue.shade700
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              _formatDate(event['date']),
-                              style: TextStyle(
-                                color: Colors.blue.shade800,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 13,
+                            Icon(Icons.calendar_today_outlined, size: 12, color: Colors.grey.shade500),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                _formatDate(event['date']),
+                                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.person_outline, 
-                            size: 14, 
-                            color: Colors.grey.shade600
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Créé par: $creatorEmail',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 12,
+                      const SizedBox(width: 8),
+                      Flexible(
+                        flex: 3,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.person_outline, size: 12, color: Colors.grey.shade500),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                creatorEmail,
+                                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
-              
-              // ⭐⭐⭐ TES AJOUTS P4 : BOUTONS + LISTE PARTICIPANTS ⭐⭐⭐
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Column(
-                  children: [
-                    // Boutons Rejoindre/Quitter
-                    JoinLeaveButton(eventId: eventId),
-                    const SizedBox(height: 12),
-                    // Liste des participants (temps réel)
-                    ParticipantsList(eventId: eventId),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -387,22 +495,50 @@ final response = await supabase
   void _showInfoDialog() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('ℹ️ Synchronisation'),
-        content: const Text(
-          '✨ Synchronisation en temps réel ! ✨\n\n'
-          '• Les événements se mettent à jour automatiquement\n'
-          '• Les participants apparaissent instantanément\n'
-          '• Aucun bouton "rafraîchir" nécessaire\n\n'
-          '👥 Participation : rejoignez ou quittez un événement\n'
-          '📊 Voyez qui participe en temps réel',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Compris'),
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Synchronisation',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Fonctionnement en temps réel :\n\n'
+                '• Les événements se mettent à jour automatiquement.\n'
+                '• Les participants apparaissent instantanément.\n'
+                '• Aucun bouton d\'actualisation n\'est nécessaire.\n\n'
+                'Vous pouvez participer à un événement et voir les autres participants s\'y joindre en direct.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade700,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.blue.shade600,
+                  ),
+                  child: const Text('Fermer'),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

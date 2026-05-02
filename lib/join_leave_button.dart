@@ -106,30 +106,43 @@ class _JoinLeaveButtonState extends State<JoinLeaveButton> {
       );
     }
     
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        if (_isParticipating)
-          ElevatedButton.icon(
-            onPressed: _handleLeave,
-            icon: const Icon(Icons.exit_to_app, size: 18),
-            label: const Text('Quitter'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade100,
-              foregroundColor: Colors.red.shade800,
-            ),
-          )
-        else
-          ElevatedButton.icon(
-            onPressed: _handleJoin,
-            icon: const Icon(Icons.person_add, size: 18),
-            label: const Text('Rejoindre'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green.shade100,
-              foregroundColor: Colors.green.shade800,
-            ),
-          ),
-      ],
-    );
+    if (_isParticipating) {
+      return OutlinedButton.icon(
+        onPressed: _handleLeave,
+        icon: const Icon(Icons.exit_to_app, size: 14),
+        label: const Text(
+          'Quitter', 
+          style: TextStyle(fontSize: 12),
+          overflow: TextOverflow.ellipsis,
+        ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.red.shade600,
+          side: BorderSide(color: Colors.red.shade100),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      );
+    } else {
+      return ElevatedButton.icon(
+        onPressed: _handleJoin,
+        icon: const Icon(Icons.person_add, size: 14),
+        label: const Text(
+          'Rejoindre', 
+          style: TextStyle(fontSize: 12),
+          overflow: TextOverflow.ellipsis,
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue.shade600,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      );
+    }
   }
 }
