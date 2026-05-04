@@ -15,6 +15,9 @@ class _EventsScreenState extends State<EventsScreen> {
   List<Map<String, dynamic>> _events = [];
   bool _isLoading = true;
   String? _error;
+  
+  // 🔹 NEW: Variable to store manually selected date
+  DateTime? _selectedDate;
 
   @override
   void initState() {
@@ -25,7 +28,6 @@ class _EventsScreenState extends State<EventsScreen> {
 
   @override
   void dispose() {
-    // Nettoyer l'abonnement pour éviter les fuites mémoire
     _channel.unsubscribe();
     super.dispose();
   }
@@ -75,8 +77,6 @@ class _EventsScreenState extends State<EventsScreen> {
         schema: 'public',
         table: 'events',
         callback: (payload) {
-          // Mise à jour automatique de la liste à chaque changement
-          // Aucun bouton "rafraîchir" nécessaire ✨
           _fetchEvents();
         },
       )
@@ -87,8 +87,34 @@ class _EventsScreenState extends State<EventsScreen> {
       });
   }
 
-  /// 🔹 Crée un nouvel événement (date automatique = maintenant)
-  Future<void> _createEvent(String title) async {
+  /// 🔹 NEW: Show date picker dialog
+  Future<void> _pickDate(BuildContext context) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? now,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      locale: const Locale('fr', 'FR'), // Optional: French locale
+    );
+    
+    if (picked != null && mounted) {
+      // Keep the time portion if already set, otherwise use current time
+      final currentTime = _selectedDate ?? now;
+      setState(() {
+        _selectedDate = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          currentTime.hour,
+          currentTime.minute,
+        );
+      });
+    }
+  }
+
+  /// 🔹 Crée un nouvel événement (avec date manuelle)
+  Future<void> _createEvent(String title, DateTime eventDate) async {
     try {
       final user = supabase.auth.currentUser;
       if (user == null) {
@@ -97,11 +123,9 @@ class _EventsScreenState extends State<EventsScreen> {
 
       await supabase.from('events').insert({
         'title': title.trim(),
-        'date': DateTime.now().toIso8601String(), // 🎯 Date auto-générée
+        'date': eventDate.toIso8601String(), // ✅ Uses manually selected date
         'created_by': user.id,
       });
-      
-      // La mise à jour temps réel gère le refresh ✅
       
     } catch (e) {
       if (mounted) {
@@ -119,64 +143,88 @@ class _EventsScreenState extends State<EventsScreen> {
   /// 🔹 Affiche le dialog de création d'événement
   void _showCreateEventDialog() {
     final titleController = TextEditingController();
+    // 🔹 Reset selected date to now when opening dialog
+    _selectedDate = DateTime.now();
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('✨ Nouveau événement'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(
-                labelText: 'Titre de l\'événement',
-                hintText: 'Ex: Réunion d\'équipe, Anniversaire...',
-                prefixIcon: Icon(Icons.title),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('✨ Nouveau événement'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Titre de l\'événement',
+                  hintText: 'Ex: Réunion d\'équipe, Anniversaire...',
+                  prefixIcon: Icon(Icons.title),
+                ),
+                autofocus: true,
+                maxLength: 100,
+                onSubmitted: (_) => _submitEvent(
+                  titleController.text, 
+                  _selectedDate ?? DateTime.now()
+                ),
               ),
-              autofocus: true,
-              maxLength: 100,
-              onSubmitted: (_) => _submitEvent(titleController.text),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.access_time, size: 18, color: Colors.blue.shade700),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Date: automatique (maintenant)',
-                    style: TextStyle(
-                      color: Colors.blue.shade800,
-                      fontSize: 12,
+              const SizedBox(height: 12),
+              // 🔹 UPDATED: Date picker button
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 18, color: Colors.blue.shade700),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _selectedDate != null 
+                          ? 'Date: ${_formatDate(_selectedDate!.toIso8601String())}'
+                          : 'Date: à sélectionner',
+                        style: TextStyle(
+                          color: Colors.blue.shade800,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    IconButton(
+                      icon: const Icon(Icons.edit_calendar, size: 20),
+                      onPressed: () async {
+                        await _pickDate(context);
+                        setDialogState(() {}); // Refresh dialog UI
+                      },
+                      tooltip: 'Sélectionner une date',
+                    ),
+                  ],
+                ),
               ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => _submitEvent(
+                titleController.text, 
+                _selectedDate ?? DateTime.now()
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Créer'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => _submitEvent(titleController.text),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Créer'),
-          ),
-        ],
       ),
     );
   }
 
-  void _submitEvent(String title) {
+  void _submitEvent(String title, DateTime eventDate) {
     if (title.trim().length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -189,7 +237,7 @@ class _EventsScreenState extends State<EventsScreen> {
     }
     
     Navigator.pop(context);
-    _createEvent(title);
+    _createEvent(title, eventDate); // ✅ Pass selected date
   }
 
   /// 🔹 Formattage lisible de la date
@@ -292,7 +340,6 @@ class _EventsScreenState extends State<EventsScreen> {
       );
     }
 
-    // ✅ Liste des événements avec mise à jour temps réel
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
       itemCount: _events.length,
@@ -373,7 +420,7 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 
-  /// 🔹 Dialog d'information rapide
+  /// 🔹 Dialog d'information rapide (updated text)
   void _showInfoDialog() {
     showDialog(
       context: context,
@@ -382,8 +429,8 @@ class _EventsScreenState extends State<EventsScreen> {
         content: const Text(
           'Les événements se mettent à jour automatiquement en temps réel. '
           'Aucun bouton "rafraîchir" nécessaire ! ✨\n\n'
-          '• Création: titre uniquement\n'
-          '• Date: définie automatiquement\n'
+          '• Création: titre + date manuelle\n'
+          '• Date: définie par vos soins via le sélecteur 📅\n'
           '• Mise à jour: instantanée sur tous les appareils',
         ),
         actions: [
